@@ -23,16 +23,18 @@ jobs:
           git clone https://github.com/frida/frida.git
           cd frida
           git checkout 17.5.2
+          ls -l
 
       - name: Fix executable bit for frida_version.py
-        working-directory: frida
         run: |
+          cd frida
+          ls releng
           chmod +x releng/frida_version.py
           ls -l releng/frida_version.py
 
       - name: Create Android aarch64 cross file
-        working-directory: frida
         run: |
+          cd frida
           cat > android-aarch64.txt << 'EOF'
           [binaries]
           c = 'aarch64-linux-gnu-gcc'
@@ -52,8 +54,8 @@ jobs:
           EOF
 
       - name: Configure Android arm64 build
-        working-directory: frida
         run: |
+          cd frida
           meson setup build-android \
             --cross-file android-aarch64.txt \
             -Dfrida-tools=enabled \
@@ -61,13 +63,13 @@ jobs:
             -Dfrida-core=enabled
 
       - name: Build frida CLI
-        working-directory: frida
         run: |
+          cd frida
           ninja -C build-android frida
 
       - name: Package artifact
-        working-directory: frida
         run: |
+          cd frida
           mkdir out
           cp build-android/subprojects/frida-tools/frida out/frida
           file out/frida
