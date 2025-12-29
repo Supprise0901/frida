@@ -1,10 +1,10 @@
-name: Build frida 17.5.2 Android arm64 CLI
+name: Build Android arm64 Frida CLI
 
 on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build-frida-arm64:
     runs-on: ubuntu-22.04
 
     steps:
@@ -18,26 +18,21 @@ jobs:
             gcc-aarch64-linux-gnu \
             pkg-config
 
-      - name: Install modern Meson (>= 1.1)
+      - name: Install Meson >= 1.1 via pip
         run: |
           python3 -m pip install --upgrade pip
           python3 -m pip install 'meson>=1.1.0'
           python3 -m meson --version
 
-      - name: Clone frida source (with submodules)
+      - name: Clone frida repository with all submodules
         run: |
           git clone https://github.com/frida/frida.git
           cd frida
           git checkout 17.5.2
           git submodule update --init --recursive
+          ls -l releng
 
-      - name: Verify frida_version.py exists
-        run: |
-          cd frida
-          ls releng/frida_version.py
-          chmod +x releng/frida_version.py
-
-      - name: Create Android aarch64 cross file
+      - name: Create Android arm64 cross-file
         run: |
           cd frida
           cat > android-aarch64.txt << 'EOF'
@@ -64,21 +59,20 @@ jobs:
           python3 -m meson setup build-android \
             --cross-file android-aarch64.txt
 
-      - name: Build frida CLI
+      - name: Compile frida CLI
         run: |
           cd frida
           ninja -C build-android frida
 
-      - name: Package artifact
+      - name: Package frida CLI
         run: |
           cd frida
-          mkdir out
+          mkdir -p out
           cp build-android/subprojects/frida-tools/frida out/frida
-          file out/frida
-          sha256sum out/frida > out/frida.sha256
+          sha256sum out/frida
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: frida-17.5.2-android-arm64-cli
-          path: frida/out/
+          path: frida/out/frida
