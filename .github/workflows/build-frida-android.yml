@@ -60,7 +60,7 @@ jobs:
           cd frida
           meson setup build-android \
             --cross-file android-aarch64.txt \
-            -Dsubsystem=android
+            -Dplatform=android
 
       - name: Build frida CLI
         run: |
