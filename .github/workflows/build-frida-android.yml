@@ -24,10 +24,30 @@ jobs:
             gcc-aarch64-linux-gnu \
             pkg-config
 
+      - name: Create Android aarch64 cross file
+        run: |
+          cat > android-aarch64.txt << 'EOF'
+          [binaries]
+          c = 'aarch64-linux-gnu-gcc'
+          cpp = 'aarch64-linux-gnu-g++'
+          ar = 'aarch64-linux-gnu-ar'
+          strip = 'aarch64-linux-gnu-strip'
+          pkgconfig = 'pkg-config'
+
+          [host_machine]
+          system = 'android'
+          cpu_family = 'aarch64'
+          cpu = 'aarch64'
+          endian = 'little'
+
+          [properties]
+          needs_exe_wrapper = true
+          EOF
+
       - name: Configure Android arm64 build
         run: |
           meson setup build-android \
-            --cross-file releng/meson/android-aarch64.txt \
+            --cross-file android-aarch64.txt \
             -Dfrida-tools=enabled \
             -Dfrida-gum=enabled \
             -Dfrida-core=enabled
