@@ -22,7 +22,7 @@ jobs:
         run: |
           python3 -m pip install --upgrade pip
           python3 -m pip install 'meson>=1.1.0'
-          meson --version
+          python3 -m meson --version
 
       - name: Clone frida source (with submodules)
         run: |
@@ -46,7 +46,7 @@ jobs:
           cpp = 'aarch64-linux-gnu-g++'
           ar = 'aarch64-linux-gnu-ar'
           strip = 'aarch64-linux-gnu-strip'
-          pkgconfig = 'pkg-config'
+          pkg-config = 'pkg-config'
 
           [host_machine]
           system = 'android'
@@ -61,11 +61,8 @@ jobs:
       - name: Configure Android arm64 build
         run: |
           cd frida
-          meson setup build-android \
-            --cross-file android-aarch64.txt \
-            -Dfrida-tools=enabled \
-            -Dfrida-gum=enabled \
-            -Dfrida-core=enabled
+          python3 -m meson setup build-android \
+            --cross-file android-aarch64.txt
 
       - name: Build frida CLI
         run: |
