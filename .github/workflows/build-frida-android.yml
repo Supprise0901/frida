@@ -1,0 +1,48 @@
+name: Build frida 17.5.2 Android arm64 CLI
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout frida
+        uses: actions/checkout@v4
+        with:
+          repository: frida/frida
+          ref: 17.5.2
+
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y \
+            git python3 python3-pip \
+            meson ninja clang lld \
+            gcc-aarch64-linux-gnu pkg-config
+
+      - name: Configure
+        run: |
+          meson setup build-android \
+            --cross-file releng/meson/android-aarch64.txt \
+            -Dfrida-tools=enabled \
+            -Dfrida-gum=enabled \
+            -Dfrida-core=enabled
+
+      - name: Build frida CLI
+        run: |
+          ninja -C build-android frida
+
+      - name: Collect artifact
+        run: |
+          mkdir out
+          cp build-android/subprojects/frida-tools/frida out/frida
+          file out/frida
+          sha256sum out/frida > out/frida.sha256
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frida-17.5.2-android-arm64-cli
+          path: out/
