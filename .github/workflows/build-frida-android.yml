@@ -18,17 +18,18 @@ jobs:
             gcc-aarch64-linux-gnu \
             pkg-config
 
-      - name: Clone frida source (full)
+      - name: Clone frida source (with submodules)
         run: |
           git clone https://github.com/frida/frida.git
           cd frida
           git checkout 17.5.2
-          ls -l
+          git submodule update --init --recursive
+          ls releng
 
-      - name: Fix executable bit for frida_version.py
+      - name: Verify frida_version.py exists
         run: |
           cd frida
-          ls releng
+          ls releng/frida_version.py
           chmod +x releng/frida_version.py
           ls -l releng/frida_version.py
 
