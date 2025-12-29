@@ -12,36 +12,41 @@ jobs:
         run: |
           sudo apt update
           sudo apt install -y \
-            git \
+            git unzip \
             python3 python3-venv \
             ninja-build clang lld \
-            gcc-aarch64-linux-gnu \
             pkg-config
 
-      - name: Create Python venv and install Meson
+      - name: Setup Python venv & Meson
         run: |
           python3 -m venv venv
           source venv/bin/activate
           pip install --upgrade pip
-          pip install 'meson>=1.1.0'
+          pip install meson
           meson --version
 
-      - name: Clone frida with releng + meson submodules
+      - name: Download Android NDK
+        run: |
+          wget https://dl.google.com/android/repository/android-ndk-r26d-linux.zip
+          unzip -q android-ndk-r26d-linux.zip
+          echo "ANDROID_NDK=$PWD/android-ndk-r26d" >> $GITHUB_ENV
+
+      - name: Clone frida with submodules
         run: |
           git clone https://github.com/frida/frida.git
           cd frida
           git checkout 17.5.2
           git submodule update --init --recursive
 
-      - name: Create Android arm64 cross-file
+      - name: Create Android arm64 cross-file (NDK)
         run: |
           cd frida
-          cat > android-aarch64.txt << 'EOF'
+          cat > android-aarch64.txt << EOF
           [binaries]
-          c = 'aarch64-linux-gnu-gcc'
-          cpp = 'aarch64-linux-gnu-g++'
-          ar = 'aarch64-linux-gnu-ar'
-          strip = 'aarch64-linux-gnu-strip'
+          c = '$ANDROID_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android21-clang'
+          cpp = '$ANDROID_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android21-clang++'
+          ar = '$ANDROID_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar'
+          strip = '$ANDROID_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip'
           pkg-config = 'pkg-config'
 
           [host_machine]
@@ -54,13 +59,12 @@ jobs:
           needs_exe_wrapper = true
           EOF
 
-      - name: Configure Android arm64 build (explicit subsystem)
+      - name: Configure Android build
         run: |
           source venv/bin/activate
           cd frida
           meson setup build-android \
-            --cross-file android-aarch64.txt \
-            -Dplatform=android
+            --cross-file android-aarch64.txt
 
       - name: Build frida CLI
         run: |
@@ -68,7 +72,7 @@ jobs:
           cd frida
           ninja -C build-android frida
 
-      - name: Package frida CLI
+      - name: Package artifact
         run: |
           cd frida
           mkdir -p out
