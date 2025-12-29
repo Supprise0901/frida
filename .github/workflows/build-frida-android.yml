@@ -8,16 +8,18 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-      - name: Checkout frida source
+      - name: Checkout frida official source (tag 17.5.2)
         uses: actions/checkout@v4
         with:
+          repository: frida/frida
           ref: refs/tags/17.5.2
+          fetch-depth: 1
 
-      - name: Install build dependencies
+      - name: Install dependencies
         run: |
           sudo apt update
           sudo apt install -y \
-            git python3 python3-pip \
+            python3 python3-pip \
             meson ninja clang lld \
             gcc-aarch64-linux-gnu \
             pkg-config
@@ -30,11 +32,11 @@ jobs:
             -Dfrida-gum=enabled \
             -Dfrida-core=enabled
 
-      - name: Build frida CLI only
+      - name: Build frida CLI
         run: |
           ninja -C build-android frida
 
-      - name: Collect build artifact
+      - name: Package artifact
         run: |
           mkdir out
           cp build-android/subprojects/frida-tools/frida out/frida
