@@ -24,6 +24,12 @@ jobs:
           cd frida
           git checkout 17.5.2
 
+      - name: Fix executable bit for frida_version.py
+        working-directory: frida
+        run: |
+          chmod +x releng/frida_version.py
+          ls -l releng/frida_version.py
+
       - name: Create Android aarch64 cross file
         working-directory: frida
         run: |
