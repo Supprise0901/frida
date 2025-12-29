@@ -13,7 +13,7 @@ jobs:
         with:
           repository: frida/frida
           ref: refs/tags/17.5.2
-          fetch-depth: 1
+          # ⚠️ 不要 shallow clone，否则 releng 缺失
 
       - name: Install dependencies
         run: |
