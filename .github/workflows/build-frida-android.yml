@@ -8,15 +8,21 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-      - name: Install dependencies
+      - name: Install base dependencies
         run: |
           sudo apt update
           sudo apt install -y \
             git \
             python3 python3-pip \
-            meson ninja-build clang lld \
+            ninja-build clang lld \
             gcc-aarch64-linux-gnu \
             pkg-config
+
+      - name: Install modern Meson (>= 1.1)
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install 'meson>=1.1.0'
+          python3 -m meson --version
 
       - name: Clone frida source (with submodules)
         run: |
@@ -24,14 +30,12 @@ jobs:
           cd frida
           git checkout 17.5.2
           git submodule update --init --recursive
-          ls releng
 
       - name: Verify frida_version.py exists
         run: |
           cd frida
           ls releng/frida_version.py
           chmod +x releng/frida_version.py
-          ls -l releng/frida_version.py
 
       - name: Create Android aarch64 cross file
         run: |
@@ -57,7 +61,7 @@ jobs:
       - name: Configure Android arm64 build
         run: |
           cd frida
-          meson setup build-android \
+          python3 -m meson setup build-android \
             --cross-file android-aarch64.txt \
             -Dfrida-tools=enabled \
             -Dfrida-gum=enabled \
