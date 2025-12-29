@@ -22,17 +22,16 @@ jobs:
         run: |
           python3 -m venv venv
           source venv/bin/activate
-          python -m pip install --upgrade pip
+          pip install --upgrade pip
           pip install 'meson>=1.1.0'
           meson --version
 
-      - name: Clone frida repository with submodules
+      - name: Clone frida with releng + meson submodules
         run: |
           git clone https://github.com/frida/frida.git
           cd frida
           git checkout 17.5.2
           git submodule update --init --recursive
-          ls releng
 
       - name: Create Android arm64 cross-file
         run: |
@@ -55,12 +54,13 @@ jobs:
           needs_exe_wrapper = true
           EOF
 
-      - name: Configure Android arm64 build
+      - name: Configure Android arm64 build (explicit subsystem)
         run: |
           source venv/bin/activate
           cd frida
           meson setup build-android \
-            --cross-file android-aarch64.txt
+            --cross-file android-aarch64.txt \
+            -Dsubsystem=android
 
       - name: Build frida CLI
         run: |
@@ -73,6 +73,7 @@ jobs:
           cd frida
           mkdir -p out
           cp build-android/subprojects/frida-tools/frida out/frida
+          file out/frida
           sha256sum out/frida
 
       - name: Upload artifact
